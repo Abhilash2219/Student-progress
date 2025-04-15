@@ -13,19 +13,19 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* <Route path="/" element={<LoginPage />} />
-        <Route path="/add-module" element={<AddModule />} /> */}
-        <Route path="/" element={<Admincontrol />} />
-        {/* <Route path="/cpanel" element={<RegisterStudent />} />
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/add-module" element={<AddModule />} />
+        <Route path="/admin_panel" element={<Admincontrol />} />
+        <Route path="/cpanel" element={<RegisterStudent />} />
         <Route path="/update-attendance" element={<UpdateAttendance />} />
-        <Route path="/update-marks" element={<UpdateMarks />} /> */}
+        <Route path="/update-marks" element={<UpdateMarks />} />
         <Route path="/share" element={<SharePage />} />
 
         {/* ✅ Student Dashboard Route */}
-        {/* <Route
+        <Route
           path="/student-dashboard/:companyCode/:studentId"
           element={<StudentDashboard />}
-        /> */}
+        />
       </Routes>
     </Router>
   );
