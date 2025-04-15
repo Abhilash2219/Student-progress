@@ -1,0 +1,42 @@
+/* src/styles/SharePage.css */
+
+.share-page {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     padding: 90px;
+   }
+   
+   .share-page h2 {
+     margin-bottom: 20px;
+     color: #333;
+   }
+   
+   .share-form {
+     display: flex;
+     flex-direction: column;
+     gap: 10px;
+     width: 300px;
+   }
+   
+   .share-form input {
+     padding: 10px;
+     border: 1px solid #ccc;
+     border-radius: 6px;
+     font-size: 16px;
+   }
+   
+   .share-form button {
+     padding: 10px;
+     background-color: #4caf50;
+     color: white;
+     border: none;
+     border-radius: 6px;
+     font-size: 16px;
+     cursor: pointer;
+   }
+   
+   .share-form button:hover {
+     background-color: #45a049;
+   }
+   

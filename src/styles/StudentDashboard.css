@@ -1,0 +1,119 @@
+.studentDashboard {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trainerCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.links a {
+  margin-left: 10px;
+  color: #0077cc;
+}
+
+.tabs {
+  margin-top: 20px;
+}
+
+.tab {
+  padding: 10px 20px;
+  margin-right: 10px;
+  border: none;
+  background-color: #eee;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tab.active {
+  background-color: #0077cc;
+  color: white;
+}
+
+.glassBox {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(5px);
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.attendanceGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  padding: 5px 10px;
+  border-radius: 4px;
+  background-color: lightgray;
+}
+
+.tag.present {
+  background-color: lightgreen;
+}
+
+.tag.absent {
+  background-color: tomato;
+}
+
+.marksTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.marksTable th,
+.marksTable td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+/* Notes Tab Layout */
+/* Notes Tab Layout */
+.notesLayout {
+  display: flex;
+  gap: 20px;
+}
+
+.notesList {
+  flex: 0.5; /* Decreased from 1 to 0.5 */
+}
+
+.notesList ul {
+  list-style: none;
+  padding: 0;
+}
+
+.notesList li button {
+  display: block;
+  margin-bottom: 10px;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.notesList li button:hover {
+  background-color: #0077cc;
+  color: white;
+}
+
+.noteContent {
+  flex: 2.5; /* Increased from 2 to 2.5 */
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 400px;
+}
