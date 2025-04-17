@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import "../styles/Login.css";
+import { db } from "../../firebase";
+import "./Login.css";
 
 const LoginPage = () => {
   const [companyCode, setCompanyCode] = useState("");
@@ -60,7 +60,7 @@ const LoginPage = () => {
           localStorage.setItem("companyCode", code);
 
           if (password === data.adminPassword) {
-            navigate("/cpanel");
+            navigate("/RegisterStudent");
           } else {
             navigate("/admin_panel");
           }

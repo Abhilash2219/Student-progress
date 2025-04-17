@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import {
   collection,
   getDocs,
@@ -8,34 +8,31 @@ import {
   query,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import "../styles/UpdateAttendance.css";
-import Navbar from "../components/Navbar";
+import "./UpdateAttendance.css";
+import Navbar from "./Navbar";
 
 const UpdateAttendance = () => {
   const [students, setStudents] = useState([]);
   const [attendanceMap, setAttendanceMap] = useState({});
+  const [commentMap, setCommentMap] = useState({});
   const [selectedDate, setSelectedDate] = useState("");
   const [companyCode, setCompanyCode] = useState("");
 
   const navigate = useNavigate();
 
-  // Set company code and default date
   useEffect(() => {
     const storedCode = localStorage.getItem("companyCode");
-
     if (!storedCode) {
       alert("Company not found. Please login again.");
       navigate("/");
       return;
     }
-
     setCompanyCode(storedCode);
 
     const today = new Date().toISOString().split("T")[0];
     setSelectedDate(today);
   }, [navigate]);
 
-  // Fetch students and their attendance for selectedDate
   useEffect(() => {
     const fetchStudentsAndAttendance = async () => {
       if (!companyCode || !selectedDate) return;
@@ -52,13 +49,17 @@ const UpdateAttendance = () => {
         }));
         setStudents(studentList);
 
-        const existingAttendanceMap = {};
+        const attendanceObj = {};
+        const commentObj = {};
+
         studentList.forEach((student) => {
-          const attendanceStatus = student.attendance?.[selectedDate] || "Present";
-          existingAttendanceMap[student.id] = attendanceStatus;
+          // __define-ocg__ Setting default as 'Absent' if no record
+          attendanceObj[student.id] = student.attendance?.[selectedDate] || "Absent";
+          commentObj[student.id] = student.comments?.[selectedDate] || "";
         });
 
-        setAttendanceMap(existingAttendanceMap);
+        setAttendanceMap(attendanceObj);
+        setCommentMap(commentObj);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
@@ -67,9 +68,9 @@ const UpdateAttendance = () => {
     fetchStudentsAndAttendance();
   }, [companyCode, selectedDate]);
 
-  // Toggle attendance status
   const toggleStatus = (id) => {
-    const statuses = ["Present", "Absent", "Late Came", "Early Leave", "Inactive"];
+    // __define-ocg__ New order including 'Late'
+    const statuses = ["Present", "Absent", "Late"];
     setAttendanceMap((prev) => {
       const current = prev[id];
       const currentIndex = statuses.indexOf(current);
@@ -78,12 +79,14 @@ const UpdateAttendance = () => {
     });
   };
 
-  // Handle date change
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
   };
 
-  // Submit attendance to Firestore
+  const handleCommentChange = (id, comment) => {
+    setCommentMap((prev) => ({ ...prev, [id]: comment }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedDate) return alert("Please select a date!");
@@ -95,12 +98,14 @@ const UpdateAttendance = () => {
           `CorporateClients/${companyCode}/studentInfo`,
           student.id
         );
+
         await updateDoc(studentRef, {
           [`attendance.${selectedDate}`]: attendanceMap[student.id],
+          [`comments.${selectedDate}`]: commentMap[student.id],
         });
       }
 
-      alert("Attendance updated successfully!");
+      alert("Attendance and comments updated successfully!");
     } catch (error) {
       console.error("Error updating attendance:", error);
       alert("Failed to update attendance.");
@@ -111,7 +116,7 @@ const UpdateAttendance = () => {
     <>
       <Navbar />
       <form onSubmit={handleSubmit} className="update-attendance-container">
-        <h2>Update Attendance</h2>
+        
         <label>Select Date: </label>
         <input
           type="date"
@@ -126,6 +131,7 @@ const UpdateAttendance = () => {
               <th>Name</th>
               <th>Email</th>
               <th>Status (Click to Toggle)</th>
+              <th>Comment</th>
             </tr>
           </thead>
           <tbody>
@@ -137,10 +143,21 @@ const UpdateAttendance = () => {
                   <button
                     type="button"
                     onClick={() => toggleStatus(student.id)}
-                    className={`attendance-btn ${attendanceMap[student.id]?.toLowerCase().replace(/\s/g, "-")}`}
+                    className={`attendance-btn ${attendanceMap[student.id]?.toLowerCase()}`}
                   >
                     {attendanceMap[student.id]}
                   </button>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    value={commentMap[student.id] || ""}
+                    onChange={(e) =>
+                      handleCommentChange(student.id, e.target.value)
+                    }
+                    placeholder="Enter comment"
+                    className="comment-input"
+                  />
                 </td>
               </tr>
             ))}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import {
   collection,
   onSnapshot,
@@ -9,8 +9,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import "../styles/ModuleForm.css";
-import Navbar from "../components/Navbar";
+import "./ModuleForm.css";
+import Navbar from "./Navbar";
 
 const AddModule = () => {
   const [companyCode, setCompanyCode] = useState("");
@@ -21,7 +21,6 @@ const AddModule = () => {
   const [moduleName, setModuleName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [description, setDescription] = useState("");
   const [status, setStatus] = useState("In Progress");
   const [modules, setModules] = useState([]);
   const [editingModuleId, setEditingModuleId] = useState(null);
@@ -97,11 +96,11 @@ const AddModule = () => {
         }
       }
 
+      // Save module data without description
       await setDoc(moduleDocRef, {
         name: moduleName,
         startDate,
         endDate,
-        description,
         status,
       });
 
@@ -118,7 +117,6 @@ const AddModule = () => {
     setModuleName(module.name);
     setStartDate(module.startDate);
     setEndDate(module.endDate);
-    setDescription(module.description);
     setStatus(module.status || "In Progress");
     setEditingModuleId(module.id);
   };
@@ -143,7 +141,6 @@ const AddModule = () => {
     setModuleName("");
     setStartDate("");
     setEndDate("");
-    setDescription("");
     setStatus("In Progress");
     setEditingModuleId(null);
   };
@@ -204,7 +201,6 @@ const AddModule = () => {
             <button onClick={handleAddCourse}>+ Add Course</button>
           </div>
 
-
           {modules.map((module) => (
             <div
               key={module.id}
@@ -212,7 +208,6 @@ const AddModule = () => {
               onClick={() => handleEditClick(module)}
             >
               <h4>{module.name}</h4>
-              
               <button onClick={(e) => { e.stopPropagation(); handleDelete(module.id); }}>
                 Delete
               </button>
@@ -284,7 +279,7 @@ const AddModule = () => {
               onChange={(e) => setEndDate(e.target.value)}
               required
             />
-            
+
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}

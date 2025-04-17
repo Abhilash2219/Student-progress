@@ -1,17 +1,17 @@
 /* Navbar.css */
 
 .navbar {
-  position: fixed;
+  
   background-color: #EDEDED; /* dark grey */
-  padding: 1rem 2rem;
+  padding: 0rem 0rem 0rem 10rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  
   top: 0;
   left: 0;
   z-index: 1000;
-  width:95%;
+  width:100%;
 }
 
 .navbar-title {

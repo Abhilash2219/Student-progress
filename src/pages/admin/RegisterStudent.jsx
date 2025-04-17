@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { db } from "../firebase";
-import Navbar from "../components/Navbar";
+import { db } from "../../firebase";
+import Navbar from "./Navbar";
 import {
   collection,
   doc,
@@ -10,7 +10,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { useLocation, useNavigate } from "react-router-dom";
-import "../styles/RegisterStudent.css";
+import "./RegisterStudent.css";
 
 const RegisterStudent = () => {
   const location = useLocation();
@@ -27,7 +27,7 @@ const RegisterStudent = () => {
   // Set company code from location or localStorage
   useEffect(() => {
     const storedCompanyCode =
-      location.state?.companyCode || localStorage.getItem("companyCode");
+      location.state?.companyCode || localStorage.getItem("orgCode") || localStorage.getItem("companyCode");
 
     if (!storedCompanyCode) {
       alert("Company code missing. Please login again.");
@@ -55,36 +55,32 @@ const RegisterStudent = () => {
     }
   };
 
-  // Fetch selected student details by ID
-  useEffect(() => {
-    const fetchStudent = async () => {
-      if (!student.studentId.trim() || !companyCode) return;
+  // Load selected student details into form
+  const handleStudentSelect = async (studentId) => {
+    if (!companyCode || !studentId) return;
 
-      try {
-        const docRef = doc(
-          db,
-          `CorporateClients/${companyCode}/studentInfo`,
-          student.studentId
-        );
-        const docSnap = await getDoc(docRef);
+    try {
+      const docRef = doc(
+        db,
+        `CorporateClients/${companyCode}/studentInfo`,
+        studentId
+      );
+      const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setStudent({
-            studentId: data.studentId || "",
-            fullName: data.fullName || "",
-            email: data.email || "",
-          });
-        } else {
-          setStudent((prev) => ({ ...prev, fullName: "", email: "" }));
-        }
-      } catch (error) {
-        console.error("Error fetching student:", error);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setStudent({
+          studentId: data.studentId || "",
+          fullName: data.fullName || "",
+          email: data.email || "",
+        });
+      } else {
+        alert("Student not found.");
       }
-    };
-
-    fetchStudent();
-  }, [student.studentId, companyCode]);
+    } catch (error) {
+      console.error("Error fetching student:", error);
+    }
+  };
 
   useEffect(() => {
     fetchStudentsList();
@@ -113,14 +109,17 @@ const RegisterStudent = () => {
         student.studentId
       );
 
-      await setDoc(docRef, {
-        studentId: student.studentId,
-        fullName: student.fullName,
-        email: student.email,
-        // You can optionally include empty placeholders for attendance/marks
-        attendance: {},
-        marks: {},
-      }, { merge: true }); // merge to avoid overwriting existing attendance/marks
+      await setDoc(
+        docRef,
+        {
+          studentId: student.studentId,
+          fullName: student.fullName,
+          email: student.email,
+          attendance: {},
+          marks: {},
+        },
+        { merge: true }
+      );
 
       alert("Student registered/updated successfully!");
       setStudent({ studentId: "", fullName: "", email: "" });
@@ -155,12 +154,20 @@ const RegisterStudent = () => {
           <h3>Registered Students</h3>
           {studentsList.length > 0 ? (
             studentsList.map((s) => (
-              <div key={s.studentId} className="student-item">
+              <div
+                key={s.studentId}
+                className="student-item"
+                onClick={() => handleStudentSelect(s.studentId)}
+                style={{ cursor: "pointer" }}
+              >
                 <span>{s.fullName}</span>
                 <span className="id">{s.studentId}</span>
                 <button
                   className="delete-btn"
-                  onClick={() => handleDelete(s.studentId)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent select on delete click
+                    handleDelete(s.studentId);
+                  }}
                 >
                   Delete
                 </button>

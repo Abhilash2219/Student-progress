@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase'; // Make sure this path is correct for your Firebase config
+import { db } from '../../firebase'; // Make sure this path is correct for your Firebase config
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import './Studentdetails.css';
 import { Pie } from 'react-chartjs-2';
@@ -24,7 +24,7 @@ const StudentDashboard = () => {
   useEffect(() => {
     // Check for the company code in the location state or localStorage
     const storedCompanyCode =
-      location.state?.companyCode || localStorage.getItem("companyCode");
+      location.state?.companyCode || localStorage.getItem("orgCode") ||localStorage.getItem("companyCode") ;
 
     if (!storedCompanyCode) {
       alert("Company code missing. Please login again.");
@@ -112,7 +112,7 @@ useEffect(() => {
     Object.values(attendance).forEach(status => {
       if (status === 'Present') counts.Present++;
       else if (status === 'Absent') counts.Absent++;
-      else if (status === 'Late Came') counts.Late++;
+      else if (status === 'Late') counts.Late++;
     });
     return counts;
   };
@@ -140,13 +140,13 @@ useEffect(() => {
 
   // Pie chart data
   const attendanceData = getOverallAttendanceData();
-  const totalAttendance = attendanceData.Present + attendanceData.Absent + attendanceData.Late;
+  const totalAttendance = attendanceData.Present + attendanceData.Absent+attendanceData.Late;
 
   const pieChartData = {
-    labels: ['Present', 'Absent', 'Late Came'],
+    labels: ['Present', 'Absent','Late Come'],
     datasets: [
       {
-        data: [attendanceData.Present, attendanceData.Absent, attendanceData.Late],
+        data: [attendanceData.Present, attendanceData.Absent,attendanceData.Late],
         backgroundColor: ['#4CAF50', '#F44336', '#FFEB3B'], // Colors for Present, Absent, and Late
         hoverBackgroundColor: ['#81C784', '#FFCDD2', '#FFF59D'],
       },
@@ -169,7 +169,7 @@ useEffect(() => {
           let percentage = (value / totalAttendance) * 100;
           return `${percentage.toFixed(2)}%`;
         },
-        color: 'white',
+        color: 'black',
         font: {
           weight: 'bold',
           size: 16,
@@ -209,7 +209,7 @@ useEffect(() => {
                 <div className="attendance-summary">
                   <span className="present-count">Present: {counts.Present}</span>
                   <span className="absent-count">Absent: {counts.Absent}</span>
-                  <span className="late-count">Late: {counts.Late}</span>
+                  <span className="late-count">Late:{counts.Late}</span>
                 </div>
                 <button className="view-more-btn" onClick={() => setSelectedStudent(student)}>View More</button>
               </div>
@@ -220,7 +220,7 @@ useEffect(() => {
 
       {/* Marksheet Summary */}
       {activeTab === 'marks' && (
-        <div className="section">
+      <div className="section">
           <h3 className="section-title">Marksheet Summary</h3>
           <table className="marks-table">
             <thead>
@@ -230,16 +230,31 @@ useEffect(() => {
                 <th>Module</th>
                 <th>Assignment</th>
                 <th>Quiz</th>
+                <th>Comments</th>
               </tr>
             </thead>
             <tbody>
               {students.map(student => {
                 const { fullName, studentId, marks = {} } = student;
-                const totalRows = Object.values(marks).reduce((acc, modules) => acc + Object.keys(modules).length, 0);
+
+                // Count total valid module rows across all sorted courses
+                const sortedCourseEntries = Object.entries(marks)
+                  .filter(([course]) => course !== 'comments')
+                  .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
+
+                const totalRows = sortedCourseEntries.reduce((acc, [, modules]) => {
+                  const validModules = Object.keys(modules).filter(key => key !== 'comments');
+                  return acc + validModules.length;
+                }, 0);
+
                 let nameDisplayed = false;
 
-                return Object.entries(marks).flatMap(([course, modules]) => {
-                  const moduleEntries = Object.entries(modules);
+                return sortedCourseEntries.flatMap(([course, modules]) => {
+                  const courseComments = modules.comments || '';
+                  const moduleEntries = Object.entries(modules)
+                    .filter(([key]) => key !== 'comments')
+                    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
+
                   let courseDisplayed = false;
 
                   return moduleEntries.map(([module, scores]) => {
@@ -261,6 +276,11 @@ useEffect(() => {
                         <td>{module}</td>
                         <td className={assignmentClass}>{scores.assignment}</td>
                         <td className={quizClass}>{scores.quiz}</td>
+                        {!courseDisplayed && (
+                          <td rowSpan={moduleEntries.length} style={{ verticalAlign: 'middle' }}>
+                            {courseComments}
+                          </td>
+                        )}
                       </tr>
                     );
 
@@ -273,8 +293,7 @@ useEffect(() => {
             </tbody>
           </table>
         </div>
-      )}
-
+)}
       {/* Attendance Summary */}
       {activeTab === 'attendance' && (
         <div className="attendance-summary-section">
@@ -317,9 +336,9 @@ useEffect(() => {
                       <p><strong>End Date:</strong> {module.endDate}</p>
                       <div
                         className={`status-badge ${
-                          module.status.trim().toLowerCase() === 'complete'
+                          module.status.trim().toLowerCase() === 'completed'
                             ? 'status-complete'
-                            : module.status.trim().toLowerCase() === 'progress'
+                            : module.status.trim().toLowerCase() === 'in progress'
                             ? 'status-progress'
                             : 'status-inactive'
                         }`}
@@ -344,67 +363,83 @@ useEffect(() => {
       {/* Modal */}
       {selectedStudent && (
         <div className="modal-overlay" onClick={() => setSelectedStudent(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <span className="close-button" onClick={() => setSelectedStudent(null)}>&times;</span>
-            <h2>{selectedStudent.fullName} ({selectedStudent.studentId})</h2>
-            <p>Email: {selectedStudent.email}</p>
-            <h4>Attendance</h4>
-            <table className="modal-table">
-              <thead><tr><th>Date</th><th>Status</th></tr></thead>
-              <tbody>
-                {selectedStudent.attendance &&
-                  Object.entries(selectedStudent.attendance).map(([date, status]) => (
-                    <tr key={date}>
-                      <td>{date}</td>
-                      <td>{status}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <span className="close-button" onClick={() => setSelectedStudent(null)}>&times;</span>
+          <h2>{selectedStudent.fullName} ({selectedStudent.studentId})</h2>
+          <p>Email: {selectedStudent.email}</p>
+      
+          {/* Attendance Section */}
+          <h4>Attendance and Comments</h4>
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Comment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {selectedStudent.attendance &&
+                Object.entries(selectedStudent.attendance).map(([date, status]) => (
+                  <tr key={date}>
+                    <td>{date}</td>
+                    <td>{status}</td>
+                    <td>
+                      {selectedStudent.comments && selectedStudent.comments[date]
+                        ? selectedStudent.comments[date]
+                        : "No comment"}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
 
-            <h4>Marks</h4>
-            <table className="modal-table">
-              <thead>
-                <tr>
-                  <th>Course</th>
-                  <th>Module</th>
-                  <th>Assignment</th>
-                  <th>Quiz</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedStudent && selectedStudent.marks &&
-                  Object.entries(selectedStudent.marks)
-                    .sort(([courseA], [courseB]) => courseA.localeCompare(courseB)) // Sort by course name
-                    .flatMap(([course, modules]) => {
-                      const moduleEntries = Object.entries(modules).sort(([moduleA], [moduleB]) => moduleA.localeCompare(moduleB));
-                      let courseDisplayed = false;
-
-                      return moduleEntries.map(([module, scores]) => {
-                        const assignmentClass = getScoreClass(scores.assignment);
-                        const quizClass = getScoreClass(scores.quiz);
-
-                        const row = (
-                          <tr key={`${course}-${module}`}>
-                            {!courseDisplayed && (
-                              <td rowSpan={moduleEntries.length} style={{ verticalAlign: 'middle', fontWeight: '500' }}>
-                                {course}
-                              </td>
-                            )}
-                            <td>{module}</td>
-                            <td className={assignmentClass}>{scores.assignment}</td>
-                            <td className={quizClass}>{scores.quiz}</td>
-                          </tr>
-                        );
-
-                        courseDisplayed = true;
-                        return row;
-                      });
-                    })}
-              </tbody>
-            </table>
-          </div>
+      
+          {/* Marks Section */}
+          <h4>Marks</h4>
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Module</th>
+                <th>Assignment</th>
+                <th>Quiz</th>
+              </tr>
+            </thead>
+            <tbody>
+              {selectedStudent && selectedStudent.marks &&
+                Object.entries(selectedStudent.marks)
+                  .sort(([courseA], [courseB]) => courseA.localeCompare(courseB)) // Sort by course name
+                  .flatMap(([course, modules]) => {
+                    const moduleEntries = Object.entries(modules).sort(([moduleA], [moduleB]) => moduleA.localeCompare(moduleB));
+                    let courseDisplayed = false;
+      
+                    return moduleEntries.map(([module, scores]) => {
+                      const assignmentClass = getScoreClass(scores.assignment);
+                      const quizClass = getScoreClass(scores.quiz);
+      
+                      const row = (
+                        <tr key={`${course}-${module}`}>
+                          {!courseDisplayed && (
+                            <td rowSpan={moduleEntries.length} style={{ verticalAlign: 'middle', fontWeight: '500' }}>
+                              {course}
+                            </td>
+                          )}
+                          <td>{module}</td>
+                          <td className={assignmentClass}>{scores.assignment}</td>
+                          <td className={quizClass}>{scores.quiz}</td>
+                        </tr>
+                      );
+      
+                      courseDisplayed = true;
+                      return row;
+                    });
+                  })}
+            </tbody>
+          </table>
         </div>
+      </div>
+      
       )}
     </div>
   );

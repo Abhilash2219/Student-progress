@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
-import "../styles/StudentDashboard.css";
+import { db } from "../../firebase";
+import "./StudentDashboard.css";
 import { FaChalkboardTeacher } from "react-icons/fa";
 
 const StudentDashboard = () => {
