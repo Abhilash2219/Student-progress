@@ -1,15 +1,12 @@
 .update-attendance-container {
   max-width: 75%; /* Changed from 1500px to 95% of viewport */
-  width: 95vw;     /* Optional: ensures full width on large screens */
+  width: 95vw; /* Optional: ensures full width on large screens */
   margin-left: auto;
   margin-right: auto;
   justify-self: center;
-  
-  
-  animation: fadeIn 0.6s ease-in-out;
- 
-}
 
+  animation: fadeIn 0.6s ease-in-out;
+}
 
 .update-attendance-container h2 {
   margin-top: 5%;
@@ -17,8 +14,6 @@
   margin-bottom: 1.5rem;
   color: #2e2e2e;
 }
-
-
 
 .update-attendance-container label {
   font-weight: 600;
@@ -29,7 +24,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.update-attendance-container input[type="date"] {
+.update-attendance-container input[type='date'] {
   padding: 8px 14px;
   font-size: 0.95rem;
   border: 1.8px solid #00bcd4;
@@ -44,12 +39,10 @@
   box-shadow: 0 4px 10px rgba(0, 188, 212, 0.1);
 }
 
-.update-attendance-container input[type="date"]:focus {
+.update-attendance-container input[type='date']:focus {
   border-color: #0097a7;
   box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
 }
-
-
 
 .update-attendance-table {
   width: 100%;
@@ -108,7 +101,7 @@
   opacity: 0.9;
 }
 
-.update-attendance-container button[type="submit"] {
+.update-attendance-container button[type='submit'] {
   display: block;
   margin: 0 auto;
   background-color: #00bcd4;
@@ -122,7 +115,7 @@
   transition: background-color 0.3s ease;
 }
 
-.update-attendance-container button[type="submit"]:hover {
+.update-attendance-container button[type='submit']:hover {
   background-color: #0097a7;
 }
 
@@ -138,14 +131,12 @@
   }
 }
 
-
 .comment-input {
   width: 100%;
   padding: 4px 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
-
 
 /* UpdateAttendance.css */
 
@@ -180,4 +171,65 @@
 /* Optional: On hover effect */
 .attendance-btn:hover {
   opacity: 0.9;
+}
+.update-attendance-table td:nth-child(3) {
+  font-style: italic;
+  color: #555;
+}
+
+/* 
+14/05/2025 
+added the previos day attendance to taken from the firebase 
+by Abhilash
+*/
+
+.attendance-btn,
+.prev-attendance {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  color: white;
+  display: inline-block;
+  text-align: center;
+  min-width: 70px;
+}
+
+.attendance-btn {
+  border: none;
+  cursor: pointer;
+}
+
+.present {
+  background-color: green;
+}
+
+.absent {
+  background-color: red;
+}
+
+.late {
+  background-color: orange;
+}
+
+.comment-input {
+  padding: 4px 8px;
+  width: 100%;
+  max-width: 200px;
+}
+
+.update-attendance-container {
+  padding: 20px;
+}
+
+.update-attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.update-attendance-table th,
+.update-attendance-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
 }

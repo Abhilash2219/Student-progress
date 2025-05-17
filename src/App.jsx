@@ -7,7 +7,8 @@ import SharePage from "./pages/admin/SharePage";
 import LoginPage from "./pages/admin/Login";
 import AddModule from "./pages/admin/AddModule";
 import Admincontrol from "./pages/summary/Studentdetails";
-import StudentDashboard from "./pages/admin/StudentDashboard"; // <-- Import the Student Dashboard
+import StudentDashboard from "./pages/admin/StudentDashboard";
+import NotesSection from "./pages/admin/NotesSection";
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         <Route path="/update-attendance" element={<UpdateAttendance />} />
         <Route path="/update-marks" element={<UpdateMarks />} />
         <Route path="/share" element={<SharePage />} />
+        <Route path="/notes" element={<NotesSection />} />
+        
 
         {/* ✅ Student Dashboard Route */}
         <Route

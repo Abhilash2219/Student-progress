@@ -1,0 +1,64 @@
+{
+  "GSK2025A": {
+    "Language Fundamentals": {
+      "title": "Language Fundamentals",
+      "items": [
+        { "label": "Introduction to Python", "file": "language-fundamentals/intro-to-python.md" },
+        { "label": "Variables and Data Types", "file": "language-fundamentals/variables-and-data-types.md" },
+        { "label": "Control Flow", "file": "language-fundamentals/control-flow.md" },
+        { "label": "Functions and Modules", "file": "language-fundamentals/functions-and-modules.md" },
+        { "label": "Error Handling", "file": "language-fundamentals/error-handling.md" },
+        { "label": "File I/O", "file": "language-fundamentals/file-io.md" }
+      ]
+    },
+    "Object-Oriented Programming": {
+      "title": "Object-Oriented Programming",
+      "items": [
+        { "label": "Introduction to OOP", "file": "oop/intro-to-oop.md" },
+        { "label": "Classes and Objects", "file": "oop/classes-and-objects.md" },
+        { "label": "Inheritance", "file": "oop/inheritance.md" },
+        { "label": "Polymorphism", "file": "oop/polymorphism.md" },
+        { "label": "Encapsulation", "file": "oop/encapsulation.md" }
+      ]
+    },
+    "Web Development Basics": {
+      "title": "Web Development Basics",
+      "items": [
+        { "label": "HTML Introduction", "file": "web-dev-basics/html-intro.md" },
+        { "label": "CSS Basics", "file": "web-dev-basics/css-basics.md" },
+        { "label": "JavaScript Fundamentals", "file": "web-dev-basics/javascript-fundamentals.md" },
+        { "label": "Building a Simple Website", "file": "web-dev-basics/simple-website.md" }
+      ]
+    },
+    "Database Management": {
+      "title": "Database Management",
+      "items": [
+        { "label": "Database Introduction", "file": "db-management/db-introduction.md" },
+        { "label": "SQL Basics", "file": "db-management/sql-basics.md" },
+        { "label": "CRUD Operations", "file": "db-management/crud-operations.md" },
+        { "label": "Joins in SQL", "file": "db-management/joins-in-sql.md" },
+        { "label": "Database Design", "file": "db-management/database-design.md" }
+      ]
+    }
+  }, "TCS2025A": {
+    "title": "Advanced Java",
+    "items": [
+      { "label": "Introduction to Java", "file": "advanced-java/intro-to-java.md" },
+      { "label": "OOP Concepts", "file": "advanced-java/oop-concepts.md" },
+      { "label": "Collections Framework", "file": "advanced-java/collections-framework.md" },
+      { "label": "Multithreading", "file": "advanced-java/multithreading.md" },
+      { "label": "Exception Handling", "file": "advanced-java/exception-handling.md" }
+    ]
+  },
+  "INFY2025B": {
+    "title": "Web Development",
+    "items": [
+      { "label": "HTML Basics", "file": "web-development/html-basics.md" },
+      { "label": "CSS Styling", "file": "web-development/css-styling.md" },
+      { "label": "JavaScript Essentials", "file": "web-development/javascript-essentials.md" },
+      { "label": "React Introduction", "file": "web-development/react-intro.md" },
+      { "label": "Node.js Backend", "file": "web-development/nodejs-backend.md" }
+    ]
+  }
+}
+

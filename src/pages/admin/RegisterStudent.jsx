@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { db } from "../../firebase";
-import Navbar from "./Navbar";
 import {
   collection,
   doc,
@@ -9,12 +8,17 @@ import {
   setDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./RegisterStudent.css";
+
+// Lazy load both navbars
+const Navbar = lazy(() => import("./Navbar"));
+const NavbarApp = lazy(() => import("./NavbarApp"));
 
 const RegisterStudent = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const params = useParams();
 
   const [companyCode, setCompanyCode] = useState("");
   const [studentsList, setStudentsList] = useState([]);
@@ -24,10 +28,13 @@ const RegisterStudent = () => {
     email: "",
   });
 
-  // Set company code from location or localStorage
+  // Conditionally load Navbar
+  const NavbarComponent = location.pathname.includes("/app")
+    ? NavbarApp
+    : Navbar;
+
   useEffect(() => {
-    const storedCompanyCode =
-      location.state?.companyCode || localStorage.getItem("orgCode") || localStorage.getItem("companyCode");
+    const storedCompanyCode = localStorage.getItem("orgCode") || params.orgCode|| localStorage.getItem("companyCode");
 
     if (!storedCompanyCode) {
       alert("Company code missing. Please login again.");
@@ -36,9 +43,8 @@ const RegisterStudent = () => {
       setCompanyCode(storedCompanyCode);
       localStorage.setItem("companyCode", storedCompanyCode);
     }
-  }, [location, navigate]);
+  }, [params.orgCode, navigate]);
 
-  // Fetch all registered students
   const fetchStudentsList = async () => {
     if (!companyCode) return;
     try {
@@ -49,13 +55,21 @@ const RegisterStudent = () => {
         id: doc.id,
         ...doc.data(),
       }));
+      list.sort((a, b) => {
+        const idA = parseInt(a.studentId, 10);
+        const idB = parseInt(b.studentId, 10);
+        return idB - idA; // descending
+      });
       setStudentsList(list);
     } catch (error) {
       console.error("Error fetching students list:", error);
     }
   };
 
-  // Load selected student details into form
+  useEffect(() => {
+    fetchStudentsList();
+  }, [companyCode]);
+
   const handleStudentSelect = async (studentId) => {
     if (!companyCode || !studentId) return;
 
@@ -82,10 +96,6 @@ const RegisterStudent = () => {
     }
   };
 
-  useEffect(() => {
-    fetchStudentsList();
-  }, [companyCode]);
-
   const handleChange = (e) => {
     setStudent({ ...student, [e.target.name]: e.target.value });
   };
@@ -95,8 +105,7 @@ const RegisterStudent = () => {
 
     if (
       !student.studentId.trim() ||
-      !student.fullName.trim() ||
-      !student.email.trim()
+      !student.fullName.trim() 
     ) {
       alert("Please fill in all fields.");
       return;
@@ -147,7 +156,9 @@ const RegisterStudent = () => {
 
   return (
     <>
-      <Navbar />
+      <Suspense fallback={<div>Loading Navbar...</div>}>
+        <NavbarComponent />
+      </Suspense>
       <div className="register-page">
         {/* Left Section */}
         <div className="left-section">
@@ -165,7 +176,7 @@ const RegisterStudent = () => {
                 <button
                   className="delete-btn"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent select on delete click
+                    e.stopPropagation();
                     handleDelete(s.studentId);
                   }}
                 >
@@ -204,7 +215,7 @@ const RegisterStudent = () => {
               placeholder="Email"
               value={student.email}
               onChange={handleChange}
-              required
+              
             />
             <button type="submit">Register / Update</button>
           </form>

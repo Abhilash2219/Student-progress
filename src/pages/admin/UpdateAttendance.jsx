@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { db } from "../../firebase";
 import {
   collection,
@@ -7,9 +7,12 @@ import {
   updateDoc,
   query,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./UpdateAttendance.css";
-import Navbar from "./Navbar";
+
+// Lazy load both navbars
+const Navbar = lazy(() => import("./Navbar"));
+const NavbarApp = lazy(() => import("./NavbarApp"));
 
 const UpdateAttendance = () => {
   const [students, setStudents] = useState([]);
@@ -17,8 +20,15 @@ const UpdateAttendance = () => {
   const [commentMap, setCommentMap] = useState({});
   const [selectedDate, setSelectedDate] = useState("");
   const [companyCode, setCompanyCode] = useState("");
+  const [prevDayAttendance, setPrevDayAttendance] = useState({});
+  const [prevDate, setPrevDate] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const NavbarComponent = location.pathname.includes("/app")
+    ? NavbarApp
+    : Navbar;
 
   useEffect(() => {
     const storedCode = localStorage.getItem("companyCode");
@@ -43,23 +53,36 @@ const UpdateAttendance = () => {
           `CorporateClients/${companyCode}/studentInfo`
         );
         const querySnapshot = await getDocs(query(studentsRef));
+
         const studentList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+
+        studentList.sort((a, b) =>
+          (a.fullName || "").localeCompare(b.fullName || "")
+        );
+
         setStudents(studentList);
 
         const attendanceObj = {};
         const commentObj = {};
+        const prevAttendanceObj = {};
+
+        const prev = getPreviousDate(selectedDate);
+        setPrevDate(prev);
 
         studentList.forEach((student) => {
-          // __define-ocg__ Setting default as 'Absent' if no record
-          attendanceObj[student.id] = student.attendance?.[selectedDate] || "Absent";
+          attendanceObj[student.id] =
+            student.attendance?.[selectedDate] || "Absent";
           commentObj[student.id] = student.comments?.[selectedDate] || "";
+          prevAttendanceObj[student.id] =
+            student.attendance?.[prev] || "Absent";
         });
 
         setAttendanceMap(attendanceObj);
         setCommentMap(commentObj);
+        setPrevDayAttendance(prevAttendanceObj);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
@@ -68,9 +91,14 @@ const UpdateAttendance = () => {
     fetchStudentsAndAttendance();
   }, [companyCode, selectedDate]);
 
+  const getPreviousDate = (dateStr) => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split("T")[0];
+  };
+
   const toggleStatus = (id) => {
-    // __define-ocg__ New order including 'Late'
-    const statuses = ["Present", "Absent", "Late"];
+    const statuses = ["Absent", "Present", "Late"];
     setAttendanceMap((prev) => {
       const current = prev[id];
       const currentIndex = statuses.indexOf(current);
@@ -112,11 +140,20 @@ const UpdateAttendance = () => {
     }
   };
 
+  const getColorClass = (status) => {
+    const lower = status?.toLowerCase();
+    if (lower === "present") return "present";
+    if (lower === "late") return "late";
+    return "absent"; // default
+  };
+
   return (
     <>
-      <Navbar />
+      <Suspense fallback={<div>Loading Navbar...</div>}>
+        <NavbarComponent />
+      </Suspense>
+
       <form onSubmit={handleSubmit} className="update-attendance-container">
-        
         <label>Select Date: </label>
         <input
           type="date"
@@ -130,6 +167,7 @@ const UpdateAttendance = () => {
             <tr>
               <th>Name</th>
               <th>Email</th>
+              <th>Previous Day({prevDate})</th>
               <th>Status (Click to Toggle)</th>
               <th>Comment</th>
             </tr>
@@ -140,10 +178,21 @@ const UpdateAttendance = () => {
                 <td>{student.fullName || "-"}</td>
                 <td>{student.email}</td>
                 <td>
+                  <span
+                    className={`prev-attendance ${getColorClass(
+                      prevDayAttendance[student.id]
+                    )}`}
+                  >
+                    {prevDayAttendance[student.id]}
+                  </span>
+                </td>
+                <td>
                   <button
                     type="button"
                     onClick={() => toggleStatus(student.id)}
-                    className={`attendance-btn ${attendanceMap[student.id]?.toLowerCase()}`}
+                    className={`attendance-btn ${getColorClass(
+                      attendanceMap[student.id]
+                    )}`}
                   >
                     {attendanceMap[student.id]}
                   </button>

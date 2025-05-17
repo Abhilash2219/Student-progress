@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { db } from "../../firebase";
 import {
   collection,
@@ -8,9 +8,12 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./ModuleForm.css";
-import Navbar from "./Navbar";
+
+// Lazy load navbars
+const Navbar = lazy(() => import("./Navbar"));
+const NavbarApp = lazy(() => import("./NavbarApp"));
 
 const AddModule = () => {
   const [companyCode, setCompanyCode] = useState("");
@@ -24,7 +27,12 @@ const AddModule = () => {
   const [status, setStatus] = useState("In Progress");
   const [modules, setModules] = useState([]);
   const [editingModuleId, setEditingModuleId] = useState(null);
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Dynamic Navbar based on path
+  const NavbarComponent = location.pathname.includes("/app") ? NavbarApp : Navbar;
 
   // Load company code
   useEffect(() => {
@@ -96,7 +104,6 @@ const AddModule = () => {
         }
       }
 
-      // Save module data without description
       await setDoc(moduleDocRef, {
         name: moduleName,
         startDate,
@@ -171,7 +178,10 @@ const AddModule = () => {
 
   return (
     <>
-      <Navbar />
+      <Suspense fallback={<div>Loading Navbar...</div>}>
+        <NavbarComponent />
+      </Suspense>
+
       <div className="module-layout">
         <div className="module-list">
           <h3>Existing Modules</h3>
@@ -287,7 +297,7 @@ const AddModule = () => {
             >
               <option value="Completed">Completed</option>
               <option value="In Progress">In Progress</option>
-              <option value="Inactive">Inactive</option>
+              <option value="Inactive">Not Started</option>
             </select>
             <button type="submit">
               {editingModuleId ? "Update Module" : "Add Module"}

@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import "./Login.css";
 
 const LoginPage = () => {
-  const [companyCode, setCompanyCode] = useState("GSK2025A");
+  const [companyCode, setCompanyCode] = useState("");
   const [password, setPassword] = useState("");
-  const [studentId, setStudentId] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [selectedLoginType, setSelectedLoginType] = useState(null);
 
@@ -22,23 +22,33 @@ const LoginPage = () => {
     setError("");
 
     if (selectedLoginType === "student") {
-      if (!companyCode.trim() || !studentId.trim()) {
-        setError("Please enter both Company Code and Student ID");
+      if (!companyCode.trim() || !email.trim()) {
+        setError("Please enter both Company Code and Email");
         return;
       }
 
       try {
         const code = companyCode.trim().toUpperCase();
-        const id = studentId.trim();
+        const enteredEmail = email.trim().toLowerCase();
 
-        const studentRef = doc(db, "CorporateClients", code, "studentInfo", id);
-        const studentSnap = await getDoc(studentRef);
+        const studentsCollectionRef = collection(db, "CorporateClients", code, "studentInfo");
+        const studentsSnapshot = await getDocs(studentsCollectionRef);
 
-        if (studentSnap.exists()) {
+        let foundStudentId = null;
+
+        studentsSnapshot.forEach((docSnap) => {
+          const studentData = docSnap.data();
+          if (studentData.email?.toLowerCase() === enteredEmail) {
+            foundStudentId = docSnap.id;
+          }
+        });
+
+        if (foundStudentId) {
           localStorage.setItem("companyCode", code);
-          navigate(`/student-dashboard/${code}/${id}`);
+          localStorage.setItem("studentId", foundStudentId); // ✅ Store Student ID
+          navigate(`/student-dashboard/${code}/${foundStudentId}`);
         } else {
-          setError("Invalid Student ID");
+          setError("Email not found. Please check your email and try again.");
         }
       } catch (err) {
         console.error("Student login error:", err);
@@ -89,7 +99,7 @@ const LoginPage = () => {
           style={{ cursor: "pointer" }}
         >
           <h3>For Students</h3>
-          <p>Enter your Student ID to access your dashboard.</p>
+          <p>Enter your Email to access your dashboard.</p>
         </div>
 
         <div
@@ -116,10 +126,10 @@ const LoginPage = () => {
                 onChange={(e) => setCompanyCode(e.target.value)}
               />
               <input
-                type="text"
-                placeholder="Enter Student ID"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </>
           )}
@@ -152,3 +162,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+from where the studentId is taking can you hardcode it 

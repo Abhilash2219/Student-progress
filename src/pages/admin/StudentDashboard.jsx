@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -6,33 +6,40 @@ import "./StudentDashboard.css";
 import { FaChalkboardTeacher } from "react-icons/fa";
 
 const StudentDashboard = () => {
-  const { companyCode, studentId } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const orgCode = localStorage.getItem("orgCode") || params.companyCode;
+  
+  const studentId = localStorage.getItem("studentId");
+
   const [studentData, setStudentData] = useState(null);
   const [companyData, setCompanyData] = useState(null);
   const [error, setError] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState("attendance");
   const [notesList, setNotesList] = useState([]);
   const [selectedNoteContent, setSelectedNoteContent] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+		console.log("🔥 orgCode:", orgCode);
+		console.log("🔥 studentId:", studentId);
       try {
         const studentRef = doc(
           db,
           "CorporateClients",
-          companyCode,
+          orgCode,
           "studentInfo",
           studentId
         );
+		console.log("🔥 orgCode:", orgCode);
+		console.log("🔥 studentId:", studentId);
+
         const studentSnap = await getDoc(studentRef);
 
-        const companyRef = doc(db, "CorporateClients", companyCode);
+        const companyRef = doc(db, "CorporateClients", orgCode);
         const companySnap = await getDoc(companyRef);
 
         const notesSnapshot = await getDocs(
-          collection(db, "CorporateClients", companyCode, "notesInfo")
+          collection(db, "CorporateClients", orgCode, "notesInfo")
         );
 
         const notes = notesSnapshot.docs.map((doc) => {
@@ -40,7 +47,7 @@ const StudentDashboard = () => {
           return {
             id: doc.id,
             title: data.title || "Untitled Note",
-            url: data.url || null,
+            url: typeof data.url === "string" ? data.url : "", // Fix for undefined .includes
           };
         });
 
@@ -56,16 +63,16 @@ const StudentDashboard = () => {
           setCompanyData(companySnap.data());
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("🔥 Error fetching data:", err);
         setError("Something went wrong.");
       }
     };
 
     fetchData();
-  }, [companyCode, studentId]);
+  }, [orgCode, studentId]);
 
   const handleViewNote = async (noteUrl) => {
-    if (!noteUrl || typeof noteUrl !== "string") {
+    if (!noteUrl || typeof noteUrl !== "string" || noteUrl.trim() === "") {
       console.error("Invalid or missing note URL:", noteUrl);
       setSelectedNoteContent({
         type: "text",
@@ -106,23 +113,29 @@ const StudentDashboard = () => {
   const { githubUrl, trainerProfile, trainerName } = companyData;
 
   const marksData = [];
-  Object.entries(marks).forEach(([courseName, modules]) => {
-    Object.entries(modules).forEach(([moduleName, scores]) => {
+Object.entries(marks).forEach(([courseName, modulesAndComment]) => {
+  const courseComment = modulesAndComment.comments || "—";
+
+  Object.entries(modulesAndComment).forEach(([moduleName, scores]) => {
+    if (moduleName !== "comments") {
       marksData.push({
         course: courseName,
         module: moduleName,
         assignment: parseInt(scores.assignment || 0),
         quiz: parseInt(scores.quiz || 0),
+        comment: courseComment,
       });
-    });
+    }
   });
+});
+
 
   return (
-    <div className={`studentDashboard ${darkMode ? "dark" : ""}`}>
+    <div className="studentDashboard">
       <div className="header">
         <div className="headerLeft">
           <h1>{studentData.fullName}'s Profile</h1>
-          <p className="companyCode">Company Code: {companyCode}</p>
+          <p className="orgCode">Company Code: {orgCode}</p>
         </div>
         <div className="headerRight">
           <div className="trainerCard">
@@ -147,24 +160,15 @@ const StudentDashboard = () => {
       </div>
 
       <div className="tabs">
-        <button
-          className={`tab ${activeTab === "notes" ? "active" : ""}`}
-          onClick={() => setActiveTab("notes")}
-        >
-          Notes
-        </button>
-        <button
-          className={`tab ${activeTab === "attendance" ? "active" : ""}`}
-          onClick={() => setActiveTab("attendance")}
-        >
-          Attendance
-        </button>
-        <button
-          className={`tab ${activeTab === "marks" ? "active" : ""}`}
-          onClick={() => setActiveTab("marks")}
-        >
-          Marks
-        </button>
+        {["notes", "attendance", "marks"].map((tab) => (
+          <button
+            key={tab}
+            className={`tab ${activeTab === tab ? "active" : ""}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
       {activeTab === "notes" ? (
@@ -268,35 +272,71 @@ const StudentDashboard = () => {
             </>
           )}
 
-          {activeTab === "marks" && (
-            <>
-              <h3>Marks Table</h3>
-              {marksData.length > 0 ? (
-                <table className="marksTable">
-                  <thead>
-                    <tr>
-                      <th>Course</th>
-                      <th>Module</th>
-                      <th>Assignment</th>
-                      <th>Quiz</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {marksData.map((mark, i) => (
-                      <tr key={i}>
-                        <td>{mark.course}</td>
-                        <td>{mark.module}</td>
-                        <td>{mark.assignment}</td>
-                        <td>{mark.quiz}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p>No marks available</p>
-              )}
-            </>
-          )}
+{activeTab === "marks" && (
+  <>
+    <h3>Marks Table</h3>
+    {marksData.length > 0 ? (
+      <div className="table-container">
+        <table className="marksTable">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Module</th>
+              <th>Assignment</th>
+              <th>Quiz</th>
+              <th>Comments</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(() => {
+              const courseCounts = {};
+              marksData.forEach((mark) => {
+                courseCounts[mark.course] =
+                  (courseCounts[mark.course] || 0) + 1;
+              });
+
+              const printedCourses = {};
+
+              return marksData.map((mark, i) => {
+                const showCourseCell = !printedCourses[mark.course];
+                if (showCourseCell) printedCourses[mark.course] = true;
+
+                return (
+                  <tr key={i}>
+                    {showCourseCell && (
+                      <>
+                        <td
+                          rowSpan={courseCounts[mark.course]}
+                          style={{ verticalAlign: "middle", textAlign: "center" }}
+                        >
+                          {mark.course}
+                        </td>
+                      </>
+                    )}
+                    <td>{mark.module}</td>
+                    <td>{mark.assignment}</td>
+                    <td>{mark.quiz}</td>
+                    {showCourseCell ? (
+                      <td
+                        rowSpan={courseCounts[mark.course]}
+                        style={{ verticalAlign: "middle", textAlign: "center" }}
+                      >
+                        {mark.comment}
+                      </td>
+                    ) : null}
+                  </tr>
+                );
+              });
+            })()}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p>No marks available</p>
+    )}
+  </>
+)}
+
         </div>
       )}
     </div>

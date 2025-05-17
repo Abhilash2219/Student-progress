@@ -1,0 +1,101 @@
+.studentDashboard {
+  padding: 30px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  
+}
+
+.tabs {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background-color: #e2e6ea;
+  color: #333;
+  border-radius: 0px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-weight: 500;
+}
+
+.tab-btn:hover {
+  background-color: #c8d6e5;
+}
+
+.tab-btn.active {
+  background-color: #0077cc;
+  color: white;
+  font-weight: bold;
+}
+
+.glassBox {
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+  padding: 25px;
+  border-radius: 12px;
+  margin-top: 25px;
+}
+
+.attendanceGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background-color: #d3d3d3;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.tag.present {
+  background-color: #b4f0b4;
+  color: #1c6633;
+}
+
+.tag.absent {
+  background-color: #f9c0b5;
+  color: #b71c1c;
+}
+
+.tag.late {
+  background-color: #ffe082;
+  color: #ff6f00;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.marksTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.marksTable th,
+.marksTable td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.marksTable thead {
+  background-color: #0077cc;
+  color: white;
+}
+
+.marksTable tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.marksTable tbody tr:hover {
+  background-color: #f1f9ff;
+}
